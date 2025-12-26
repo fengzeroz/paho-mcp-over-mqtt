@@ -13,7 +13,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 find_package(eclipse-paho-mqtt-c REQUIRED)
-find_package(cjson REQUIRED)
 
 set(MCP_SOURCES
 	src/jsonrpc.c

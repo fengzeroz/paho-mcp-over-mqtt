@@ -25,7 +25,7 @@ struct mcp_server {
     mcp_tool_t *tools;
 
     int               n_resources;
-    mcp_resource_t   *resources;
+    mcp_resource_t *  resources;
     mcp_resource_read read_callback;
 
     MQTTAsync                client;
@@ -252,7 +252,7 @@ int mcp_server_register_tool(mcp_server_t *server, int n_tools,
 }
 
 int mcp_server_register_resources(mcp_server_t *server, int n_resources,
-                                  mcp_resource_t   *resources,
+                                  mcp_resource_t *  resources,
                                   mcp_resource_read read_callback)
 {
     server->n_resources = n_resources;
@@ -347,7 +347,7 @@ static bool is_client_init(mcp_server_t *server, const char *topic_client)
 }
 
 static mcp_resource_t *get_resource_by_uri(mcp_server_t *server,
-                                           const char   *uri)
+                                           const char *  uri)
 {
     for (int i = 0; i < server->n_resources; i++) {
         if (strcmp(server->resources[i].uri, uri) == 0) {
@@ -361,7 +361,7 @@ static bool mcp_server_tool_check(mcp_server_t *server, const char *tool_name,
                                   int n_args, property_t *args,
                                   mcp_tool_t **tool)
 {
-    if (server == NULL || tool_name == NULL || args == NULL || n_args <= 0) {
+    if (server == NULL || tool_name == NULL) {
         return false; // Invalid parameters
     }
 
@@ -395,6 +395,7 @@ int msg_arrvd(void *ctx, char *topic, int topicLen, MQTTAsync_message *message)
     mcp_server_t *server = (mcp_server_t *) ctx;
     printf("Message arrived on topic: %s %d, %d\n", topic, topicLen,
            message->payloadlen);
+    printf("Payload: %s\n", (char *) message->payload);
 
     jsonrpc_t *jsonrpc = jsonrpc_decode(message->payload);
     if (jsonrpc == NULL) {
@@ -403,7 +404,7 @@ int msg_arrvd(void *ctx, char *topic, int topicLen, MQTTAsync_message *message)
         return 1;
     }
 
-    char               *method = jsonrpc_get_method(jsonrpc);
+    char *              method = jsonrpc_get_method(jsonrpc);
     const jsonrpc_id_t *id     = jsonrpc_get_id(jsonrpc);
     if (method == NULL) {
         jsonrpc_decode_free(jsonrpc);
@@ -482,7 +483,7 @@ int msg_arrvd(void *ctx, char *topic, int topicLen, MQTTAsync_message *message)
                 jsonrpc_tool_list_response(id, server->n_tools, server->tools));
         }
         if (strcmp(method, "tools/call") == 0) {
-            char       *f_name = NULL;
+            char *      f_name = NULL;
             int         n_args = 0;
             mcp_tool_t *tool   = NULL;
             property_t *args   = NULL;
@@ -503,12 +504,14 @@ int msg_arrvd(void *ctx, char *topic, int topicLen, MQTTAsync_message *message)
                         jsonrpc_error_response(id, -32601, "Method not found"));
                 }
 
-                for (int i = 0; i < server->n_tools; i++) {
+                for (int i = 0; i < n_args; i++) {
                     if (args[i].type == PROPERTY_STRING) {
                         free(args[i].value.string_value);
                     }
                 }
-                free(args);
+                if (n_args > 0 && args) {
+                    free(args);
+                }
             }
         }
         if (strcmp(method, "resources/list") == 0) {
