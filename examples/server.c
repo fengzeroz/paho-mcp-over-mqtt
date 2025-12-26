@@ -25,26 +25,46 @@ const char *add_numbers(int n_args, property_t *args)
     return response;
 }
 
-mcp_tool_t tool = {
-    .name           = "add",
-    .description    = "Adds two numbers",
-    .call           = add_numbers,
-    .property_count = 2,
-    .properties =
-        (property_t[]) {
-            {
-                .name                = "a",
-                .description         = "First number",
-                .type                = PROPERTY_INTEGER,
-                .value.integer_value = 0,
+const char *get_temperature_callback(int n_args, property_t *args)
+{
+    // Read sensor data
+    float temp = 25.5;
+
+    // Return JSON formatted result
+    static char result[64];
+    snprintf(result, sizeof(result), "{\"temperature\": %.2f}", temp);
+    return result;
+}
+
+mcp_tool_t tools[] = {
+    {
+        .name           = "add",
+        .description    = "Adds two numbers",
+        .call           = add_numbers,
+        .property_count = 2,
+        .properties =
+            (property_t[]) {
+                {
+                    .name                = "a",
+                    .description         = "First number",
+                    .type                = PROPERTY_INTEGER,
+                    .value.integer_value = 0,
+                },
+                {
+                    .name                = "b",
+                    .description         = "Second number",
+                    .type                = PROPERTY_INTEGER,
+                    .value.integer_value = 0,
+                },
             },
-            {
-                .name                = "b",
-                .description         = "Second number",
-                .type                = PROPERTY_INTEGER,
-                .value.integer_value = 0,
-            },
-        },
+    },
+    {
+        .name           = "get_temperature",
+        .description    = "Get device temperature",
+        .property_count = 0,
+        .properties     = NULL,
+        .call           = get_temperature_callback,
+    },
 };
 
 void mcp_server_example()
@@ -53,7 +73,7 @@ void mcp_server_example()
         "ESP32 Demo Server Name", "This is an example MCP server",
         "tcp://broker.emqx.io:1883", "example_client", NULL, NULL, NULL);
 
-    mcp_server_register_tool(server, 1, &tool);
+    mcp_server_register_tool(server, 2, tools);
 
     mcp_server_run(server);
 }
