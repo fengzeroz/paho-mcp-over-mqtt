@@ -276,6 +276,7 @@ int mcp_server_register_resources(mcp_server_t *server, int n_resources,
 static char *get_user_property(const MQTTProperties *props, const char *key)
 {
     static char value[256] = { 0 };
+    memset(value, 0, sizeof(value));
     for (int i = 0; i < props->count; i++) {
         if (props->array[i].identifier == MQTTPROPERTY_CODE_USER_PROPERTY) {
             if (strcmp(props->array[i].value.data.data, key) == 0) {
