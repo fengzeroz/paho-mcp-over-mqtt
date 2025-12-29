@@ -28,7 +28,7 @@ struct property_s {
     property_type_e  type;
     property_value_u value;
 
-    // array
+    // array or object specific
     int         n_elements;
     property_t *elements;
 };
