@@ -36,6 +36,28 @@ const char *get_temperature_callback(int n_args, property_t *args)
     return result;
 }
 
+const char *array_function(int n_args, property_t *args)
+{
+    (void) n_args;
+    property_t array_prop = args[0];
+    if (array_prop.type != PROPERTY_ARRAY) {
+        return "Invalid argument type";
+    }
+
+    long long sum = 0;
+    for (int i = 0; i < array_prop.n_elements; i++) {
+        property_t element = array_prop.elements[i];
+        if (element.type != PROPERTY_INTEGER) {
+            return "Invalid array element type";
+        }
+        sum += element.value.integer_value;
+    }
+
+    char *response = malloc(32);
+    snprintf(response, 32, "%lld", sum);
+    return response;
+}
+
 mcp_tool_t tools[] = {
     {
         .name           = "add",
@@ -65,15 +87,51 @@ mcp_tool_t tools[] = {
         .properties     = NULL,
         .call           = get_temperature_callback,
     },
+    {
+        .name           = "array_function",
+        .description    = "Function with array argument",
+        .property_count = 1,
+        .properties =
+            (property_t[]) {
+                {
+                    .name        = "values",
+                    .description = "Array of numbers",
+                    .type        = PROPERTY_ARRAY,
+                    .n_elements  = 3,
+                    .elements =
+                        (property_t[]) {
+                            {
+                                .name                = NULL,
+                                .description         = NULL,
+                                .type                = PROPERTY_INTEGER,
+                                .value.integer_value = 0,
+                            },
+                            {
+                                .name                = NULL,
+                                .description         = NULL,
+                                .type                = PROPERTY_INTEGER,
+                                .value.integer_value = 0,
+                            },
+                            {
+                                .name                = NULL,
+                                .description         = NULL,
+                                .type                = PROPERTY_INTEGER,
+                                .value.integer_value = 0,
+                            },
+                        },
+                },
+            },
+        .call = array_function,
+    },
 };
 
 void mcp_server_example()
 {
     mcp_server_t *server = mcp_server_init(
         "ESP32 Demo Server Name", "This is an example MCP server",
-        "tcp://broker.emqx.io:1883", "example_client", NULL, NULL, NULL);
+        "tcp://broker.fengzero.com:1883", "example_client", NULL, NULL, NULL);
 
-    mcp_server_register_tool(server, 2, tools);
+    mcp_server_register_tool(server, 3, tools);
 
     mcp_server_run(server);
 }
